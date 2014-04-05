@@ -35,7 +35,7 @@ function getDuration(m1, m2, mode) {
 		return $.getJSON(url, function(data) {
 			duration_cache[duration_id] = data;
 			
-			m2.li.find('span.latlng').text(m2.getLatLng().lat+', '+m2.getLatLng().lng);
+			// m2.li.find('span.latlng').text(m2.getLatLng().lat+', '+m2.getLatLng().lng);
 			
 			done_loading();
 		});
@@ -164,25 +164,32 @@ function compare_sum(a,b) {
 		
 		homes.forEach(function(home) {
 			
-			home.sum = 0;
+			home.sum = 1;
 			
 			for (id in pois) {
 				poi = pois[id];
 				var duration = get_duration(home.id+'-'+poi.id);
-				if (duration) {
+				if (duration && home.sum != 0) {
 					// console.log(poi.li);
 					
 					console.log(ul_pois.find('li[data-poi-id="'+id+'"]'));
 					
-					nb_checked = ul_pois.find('li[data-poi-id="'+id+'"] input:checked').length;
+					nb_checked = $('#'+id+' input:checked').length;
 					// nb_checked = 1;
 					// nb_checked++;
-					pond = 4-nb_checked;
+					pond = 1+nb_checked;
 					// console.log(nb_checked);
 					home.sum += pond*duration;
 				}
+				else {
+					home.sum = 0;
+				}
 				
-			}			
+			}	
+			
+			if (home.sum == 1) {
+				home.sum = 0;
+			}		
 			
 		});
 		
@@ -246,29 +253,45 @@ function compare_sum(a,b) {
 	var first = true;
 	
 	function add_poi(e) {
-		marker = L.marker([e.latlng.lat, e.latlng.lng]);
+		var marker = L.marker([e.latlng.lat, e.latlng.lng]);
 		marker.id = ((new Date()).getTime()).toString(16);
 		
-		
-		
 		console.log(marker.id);
-	    // console.log(marker, marker._leaflet_id, marker.valueOf()._leaflet_id, marker.id, e.latlng);
-		// if (first) {
-		// 	marker.setIcon(redMarker);
-		// 	first = false;
-		// 	homes.push(marker);
-		// }
-		// else {
-			pois[marker.id] = marker;
-		// }
-		update_list_pois();
+		
+		marker.lat = marker.getLatLng().lat
+		marker.lng = marker.getLatLng().lng
+		
+		pois[marker.id] = marker;
+		
+		var li = $('<li id="'+marker.id+'">{ poi.name }<br><span><input type="checkbox"><input type="checkbox"><input type="checkbox"></span><span class="latlng">{ latlng.lat }, { latlng.lng }</span></li>');
+		
+		rivets.bind(li, {
+			poi: pois[marker.id],
+			latlng: pois[marker.id].getLatLng(),
+		});
+		
+		ul_pois.append(li);
+		
 		marker.addTo(map);
+
+
+		$.getJSON('http://nominatim.openstreetmap.org/reverse?format=json&lat='+marker.getLatLng().lat+'&lon='+marker.getLatLng().lng+'', function(data) {
+			marker.name = data.address.road;
+			if (data.address.city_district) {
+				marker.name += ', '+data.address.city_district;
+			}
+		});
+		
+		homes.forEach(function(m1) {
+			var m2 = marker;
+			var duration_id = m1.id+'-'+m2.id;
+			var dur = getDuration(m1, m2);
+		});
+		
 		marker.on('click', function(e) {
-			// this.setIcon(redMarker);
 			delete pois[this.id];
 			map.removeLayer(this);
-			update_list_pois();
-			// update_homes();
+			$('#'+this.id).remove();
 		});
 		
 	}
