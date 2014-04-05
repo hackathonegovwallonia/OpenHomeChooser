@@ -16,6 +16,12 @@ aside {
   border-right: 3px solid #d2e6d2;
   overflow: auto; }
 
+#autocomplete {
+  width: 85%;
+  margin: 0 10px;
+  display: block;
+  padding: 5px; }
+
 #loading {
   position: fixed;
   top: 15px;
@@ -30,7 +36,7 @@ h1 {
   background-image: linear-gradient(#eae3d1, #f7f4ed);
   margin: 0;
   padding: 20px 10px;
-  color: #FD976B; }
+  color: #fd976b; }
 
 h2 {
   font-weight: normal;
@@ -52,7 +58,10 @@ main {
   height: 100%;
   min-height: 425px !important;
   z-index: 1 !important;
-  overflow: hidden !important; }
+  overflow: hidden !important;
+  cursor: pointer; }
+  #map img[src="img/marker-icon-2x.png"] {
+    cursor: help; }
 
 .draggable {
   cursor: move; }
@@ -67,7 +76,40 @@ ul {
     #poi_list ul li {
       border-left: 5px solid #539bd1; }
     #home_list ul li {
-      border-left: 5px solid #44CE55; }
+      border-left: 5px solid #44CE55;
+      cursor: pointer; }
+      #home_list ul li span {
+        font-size: 0.7rem;
+        color: #BBB;
+        display: inline-block;
+        width: 12px;
+        text-align: right; }
+    ul li:hover {
+      background: #efe9db; }
     ul li span.latlng {
       font-size: 0.7rem;
       color: #BBB; }
+    ul li a {
+      color: #444;
+      text-decoration: none;
+      margin-right: 10px;
+      float: right; }
+      ul li a:hover {
+        color: #fd976b; }
+
+.autocomplete-suggestions {
+  border: 1px solid #999;
+  background: #FFF;
+  overflow: auto; }
+
+.autocomplete-suggestion {
+  padding: 2px 5px;
+  white-space: nowrap;
+  overflow: hidden; }
+
+.autocomplete-selected {
+  background: #F0F0F0; }
+
+.autocomplete-suggestions strong {
+  font-weight: normal;
+  color: #fd976b; }

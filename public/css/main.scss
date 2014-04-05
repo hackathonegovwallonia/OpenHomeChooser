@@ -5,6 +5,7 @@ $beige: #F7F4ED;
 $dark: #444;
 $green: #D2E6D2;
 $blue: #539BD1;
+$orange:#FD976B;
 
 html, body {
    height: 100%;
@@ -27,6 +28,14 @@ aside {
 	overflow:auto;
 }
 
+#autocomplete {
+	width:85%;
+	
+	margin:0 10px;
+	display:block;
+	padding:5px;
+}
+
 #loading {
 	position:fixed;
 	top:15px;
@@ -39,7 +48,7 @@ h1 {
 	@include linear-gradient(darken($beige, 8%), $beige);
 	margin:0;
 	padding:20px 10px;
-	color:#FD976B;
+	color:$orange;
 }
 
 h2 {
@@ -67,6 +76,11 @@ height: 100%;
 min-height: 425px !important;
 z-index: 1 !important;
 overflow: hidden !important;
+cursor:pointer;
+
+img[src="img/marker-icon-2x.png"] {
+	cursor:help;
+}
 }
 
 .draggable {
@@ -90,6 +104,18 @@ ul {
 		}
 		#home_list & {
 			border-left:5px solid #44CE55;
+			cursor: pointer;
+			span {
+					font-size: 0.7rem;
+					color:#BBB;
+					display:inline-block;
+					width:12px;
+					text-align: right;
+			}
+		}
+		
+		&:hover {
+			background:darken($beige, 5%);
 		}
 		
 		span {
@@ -99,8 +125,22 @@ ul {
 			}
 		}
 		
+		a {
+			color:#444;
+			text-decoration: none;
+			margin-right:10px;
+			float:right;
+			&:hover {
+				color: $orange;
+			}
+		}
+		
 	}
 	
 }
 
 
+.autocomplete-suggestions { border: 1px solid #999; background: #FFF; overflow: auto; }
+.autocomplete-suggestion { padding: 2px 5px; white-space: nowrap; overflow: hidden; }
+.autocomplete-selected { background: #F0F0F0; }
+.autocomplete-suggestions strong { font-weight: normal; color: $orange; }

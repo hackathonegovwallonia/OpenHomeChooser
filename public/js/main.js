@@ -41,7 +41,7 @@ $(function() {
 	var plans = {};
 	var pois = {};
 	var homes = [];
-	var home_markers = [];
+	var home_markers = {};
 	var poi_list = $('#poi_list ul');
 	var home_list = $('#home_list ul');
 
@@ -66,38 +66,54 @@ $(function() {
 		return null;
 	}
 	
-	function add_poi(lat, lng) {
+	function add_poi(lat, lng, name) {
 		
 		var marker = L.marker([lat, lng]);
 		marker.id = ((new Date()).getTime()).toString(16);		
 		pois[marker.id] = marker;
 		marker.addTo(map);
 		
-		var li = $('<li id="'+marker.id+'">{ poi.name }<br><span><input type="checkbox"><input type="checkbox"><input type="checkbox"></span><span class="latlng">'+marker.getLatLng().lat+', '+marker.getLatLng().lng+'</span></li>');
+		var li = $('<li id="'+marker.id+'">{ poi.name }<br><span><input type="checkbox"><input type="checkbox"><input type="checkbox"></span><span class="latlng">'+marker.getLatLng().lat+', '+marker.getLatLng().lng+'</span><a href="#">x</a></li>');
 		rivets.bind(li, {
 			poi: pois[marker.id],
 		});
 		li.find('input').change(function() {
 			refresh_homes();
 		});
+		li.hover(function() {
+			pois[this.id].openPopup();
+		}, function() {
+			pois[this.id].closePopup();
+		});
+		li.find('a').click(function() {
+			remove_marker(pois[$(this).parent().attr('id')]);
+			return false;
+		});
 		poi_list.append(li);
 		
-		loading();
-		var prom_name = $.getJSON('http://nominatim.openstreetmap.org/reverse?format=json&lat='+marker.getLatLng().lat+'&lon='+marker.getLatLng().lng+'', function(data) {
-			if (data.address.road) {
-				marker.name = data.address.road;
-				if (data.address.city_district) {
-					marker.name += ', '+data.address.city_district;
-				}
-			}
-			else {
-				marker.name = 'Nom inconnu';
-			}
-			done_loading();
-		});
-		
 		var promises = [];
-		promises.push(prom_name);
+		
+		if (name === undefined) {
+			loading();
+			promises.push($.getJSON('http://nominatim.openstreetmap.org/reverse?format=json&lat='+marker.getLatLng().lat+'&lon='+marker.getLatLng().lng+'', function(data) {
+				if (data.address.road) {
+					marker.name = data.address.road;
+					if (data.address.city_district) {
+						marker.name += ', '+data.address.city_district;
+					}
+				}
+				else {
+					marker.name = 'Nom inconnu';
+				}
+				marker.bindPopup(marker.name);
+				done_loading();
+			}));
+		}
+		else {
+			marker.name = name;
+			marker.bindPopup(marker.name);
+		}
+		
 		homes.forEach(function(home) {
 			promises.push(getPlan(home, marker));
 		});
@@ -106,10 +122,15 @@ $(function() {
 		});
 		
 		marker.on('click', function(e) {
-			delete pois[this.id];
-			map.removeLayer(this);
-			$('#'+this.id).remove();
+			remove_marker(this);
 		});
+	}
+	
+	function remove_marker(marker) {
+		delete pois[marker.id];
+		map.removeLayer(marker);
+		$('#'+marker.id).remove();
+		refresh_homes();
 	}
 	
 	function refresh_homes() {
@@ -132,21 +153,29 @@ $(function() {
 		homes.sort(compare_sum);
 		
 		home_list.empty();
-		home_markers.forEach(function(marker) {
-			map.removeLayer(marker);
-		});
+		for (id in home_markers) {
+			map.removeLayer(home_markers[id]);
+		}
 		
 		var i = 0;
 		homes.forEach(function(home) {
 			if (home.sum > 0 && i < 20) {
-				var li = $('<li><span>'+(i+1)+'</span> '+home.name+'</li>');
-				home_list.append(li);
 				marker = L.marker([home.lat, home.lng]);
+				marker.id = ((new Date()).getTime()).toString(16) + i;		
 				marker.setIcon(homeMarkerIcon);
 				marker.bindPopup(home.name);
-				home_markers.push(marker);
+				var li = $('<li id="'+marker.id+'"><span>'+(i+1)+'</span> '+home.name+'</li>');
+				home_list.append(li);
+				home_markers[marker.id] = marker;
 				marker.addTo(map);
 				// li.data('marker', marker);
+				
+				li.hover(function() {
+					home_markers[this.id].openPopup();
+				}, function() {
+					home_markers[this.id].closePopup();
+				});
+				
 				i++;
 			}
 		});
@@ -177,6 +206,17 @@ $(function() {
 			home.getLatLng = function() { return this; };
 		});
 		done_loading();
+	});
+	
+	
+	$('#autocomplete').autocomplete({
+	    serviceUrl: '/backend/autocomplete.php',
+	    onSelect: function (suggestion) {
+			loading();
+	        add_poi(suggestion.data.lat, suggestion.data.lng, suggestion.value);
+			$('#autocomplete').val('');
+			done_loading();
+	    }
 	});
 
 });

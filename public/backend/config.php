@@ -2,10 +2,10 @@
 
 $config = array(
   'database' => array(
-    'host' => 'localhost',
-    'name' => 'ohc',
+    'host' => '127.0.0.1',
+    'name' => 'poi',
     'user' => 'root',
-    'password' => 'my8na6xe'
+    'password' => 'root'
   )
 );
 
