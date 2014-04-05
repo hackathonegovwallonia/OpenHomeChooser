@@ -45,7 +45,7 @@ $(function() {
 	var poi_list = $('#poi_list ul');
 	var home_list = $('#home_list ul');
 
-	function getPlan(m1, m2, mode) {
+	function getPlan(m1, m2) {
 		var plan_id = m1.id+'-'+m2.id;
 		if (plan_id in plans) {
 			return;
@@ -77,10 +77,13 @@ $(function() {
 		rivets.bind(li, {
 			poi: pois[marker.id],
 		});
+		li.find('input').change(function() {
+			refresh_homes();
+		});
 		poi_list.append(li);
 		
 		loading();
-		$.getJSON('http://nominatim.openstreetmap.org/reverse?format=json&lat='+marker.getLatLng().lat+'&lon='+marker.getLatLng().lng+'', function(data) {
+		var prom_name = $.getJSON('http://nominatim.openstreetmap.org/reverse?format=json&lat='+marker.getLatLng().lat+'&lon='+marker.getLatLng().lng+'', function(data) {
 			if (data.address.road) {
 				marker.name = data.address.road;
 				if (data.address.city_district) {
@@ -93,8 +96,13 @@ $(function() {
 			done_loading();
 		});
 		
+		var promises = [];
+		promises.push(prom_name);
 		homes.forEach(function(home) {
-			getPlan(home, marker);
+			promises.push(getPlan(home, marker));
+		});
+		$.when.apply($, promises).done(function() {
+			refresh_homes();
 		});
 		
 		marker.on('click', function(e) {
